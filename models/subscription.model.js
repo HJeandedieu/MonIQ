@@ -1,4 +1,4 @@
-import { mongoose } from "mongoose";
+import mongoose from "mongoose";
 
 const subscriptionSchema = new mongoose.Schema(
   {
@@ -7,13 +7,13 @@ const subscriptionSchema = new mongoose.Schema(
       required: [true, "Subscription name is required"],
       trim: true,
       minLength: 2,
-      maxLenght: 100,
+      maxLength: 100,
     },
 
     price: {
       type: Number,
       required: [true, "Subscription price is required"],
-      min: [0, "Price must be greater than 0"],
+      min: [0, "Price can't be less than 0"],
     },
     currency: {
       type: String,
@@ -22,6 +22,7 @@ const subscriptionSchema = new mongoose.Schema(
     },
     frequency: {
       type: String,
+      required:true,
       enum: ["daily", "weekly", "monthly", "yearly"],
     },
     category: {
@@ -59,10 +60,9 @@ const subscriptionSchema = new mongoose.Schema(
     },
     renewalDate: {
       type: Date,
-      required: true,
       validate: {
         validator: function (value) {
-          return value <= new Date();
+          return value > this.startDate;
         },
         message: "Renewal date must be after start date",
       },
@@ -78,7 +78,7 @@ const subscriptionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-subscriptionSchema.pre("save", function (next) {
+subscriptionSchema.pre("save", function () {
   if (!this.renewalDate) {
     const renewalPeriods = {
       daily: 1,
@@ -95,7 +95,8 @@ subscriptionSchema.pre("save", function (next) {
   if (this.renewalDate < new Date()) {
     this.status = "expired";
   }
-  next();
 });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
+
+export default Subscription;

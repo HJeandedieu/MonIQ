@@ -25,7 +25,9 @@ const authorize = async (req, res, next) => {
     req.user = user;
 
     next();
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 };
 
 export default authorize;
